@@ -1,30 +1,25 @@
 import { gql, useMutation } from "@apollo/client";
 import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { Logo } from "../components/Logo";
-
-const CREATE_SUBSCRIBER_MUTATION = gql`
-  mutation CreateSubscriber($name: String!, $email: String!) {
-    createSubscriber(data: { name: $name, email: $email }) {
-      id
-    }
-  }
-`;
+import { useCreateSubscriberMutation } from "../graphql/generated";
 
 export function Subscribe() {
+  const navigete = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  const [createSubscriber] = useMutation(CREATE_SUBSCRIBER_MUTATION)
-
-  function handleSubscribe(event: FormEvent) {
-    event.preventDefault();
-    createSubscriber({
-      variables:{
+  const [createSubscriber, { loading }] = useCreateSubscriberMutation()
+  async function handleSubscribe(event: FormEvent) {
+    event?.preventDefault();
+    await createSubscriber({
+      variables: {
         name,
         email,
-      }
-
-    })
+      },
+    });
+    navigete("/event");
   }
 
   return (
@@ -49,22 +44,24 @@ export function Subscribe() {
             Inscreva-se gratuitamente
           </strong>
           <form
-            onClick={handleSubscribe}
+            onSubmit={handleSubscribe}
             className="flex flex-col gap-2 w-full"
           >
             <input
-              onChange={(event) => event.target.value}
+              onChange={(event) => setName(event.target.value)}
               className="bg-gray-900 rounded px-5 h-14"
               type="text"
               placeholder="Seu nome completo"
             />
             <input
+              onChange={(event) => setEmail(event.target.value)}
               className="bg-gray-900 rounded px-5 h-14"
               type="email"
               placeholder="Digite seu email"
             />
             <button
-              className="mt-4 bg-green-500 uppercase py-4 rounded font-bold text-sm hover:bg-green-700 transition-colors"
+              disabled={loading}
+              className="mt-4 bg-green-500 uppercase py-4 rounded font-bold text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
               type="submit"
             >
               Garantir minha vaga
